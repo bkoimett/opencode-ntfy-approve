@@ -82,6 +82,8 @@ out
 .nuxt
 dist
 .output
+# OpenCode plugin runtime deployment dir
+.opencode/
 
 # Gatsby files
 .cache/

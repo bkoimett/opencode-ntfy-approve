@@ -1,5 +1,4 @@
 import type { Plugin, PluginInput } from '@opencode-ai/plugin';
-import type { Permission } from '@opencode-ai/sdk';
 import {
   approvalMessage,
   awaitDecision,
@@ -11,6 +10,23 @@ import { getRelayUrl } from './relay.js';
 import { type Decision, close, createCallbackServer, listen, PendingRequestMap } from './server.js';
 
 const HOST = '127.0.0.1';
+
+// OpenCode 1.18.31 emits `permission.asked` at runtime with an
+// AskParams-shaped payload (no `title`). The pinned v1 SDK types this
+// event as `permission.updated` with a different `Permission` shape, so
+// the event must be matched by string and cast. See AGENTS.md §3.
+type PermissionAskedEvent = {
+  type: 'permission.asked';
+  properties: {
+    id: string;
+    sessionID: string;
+    permission: string;
+    patterns?: string[];
+    metadata?: Record<string, unknown>;
+    always?: string[];
+    tool?: { messageID: string; callID: string };
+  };
+};
 
 export const plugin: Plugin = async ({ client }) => {
   const config = loadConfig();
@@ -46,51 +62,65 @@ export const plugin: Plugin = async ({ client }) => {
     dispose: async () => {
       await close(server);
     },
-    'permission.ask': async (permission) => {
-      const id = newApprovalId();
-      const relay = getRelayUrl();
-      try {
-        await ntfy.send(
-          approvalMessage(
-            {
-              permissionID: permission.id,
-              sessionID: permission.sessionID,
-              title: permission.title,
-            },
-            id,
-            relay,
-            config.port,
-          ),
-        );
-      } catch (err) {
-        await logWarn(client, `failed to send approval notification: ${String(err)}`);
-        await respond(client, permission, 'deny');
-        return;
-      }
-      void (async () => {
-        try {
-          const { decision, timedOut } = await awaitDecision(
-            requests,
-            id,
-            timeoutMs,
-          );
-          if (timedOut) {
-            await ntfy.send({
-              title: 'Approval timed out',
-              body: 'Action denied.',
-              priority: 3,
-              tags: ['hourglass_flowing_sand'],
-            });
-          }
-          await respond(client, permission, decision);
-        } catch (err) {
-          await logWarn(client, `failed to resolve approval: ${String(err)}`);
-          await respond(client, permission, 'deny');
-        }
-      })();
-    },
     event: async ({ event }) => {
       try {
+        const permissionEvent =
+          event as unknown as PermissionAskedEvent;
+        if (permissionEvent.type === 'permission.asked') {
+          const { id: permissionID, sessionID, permission, patterns } =
+            permissionEvent.properties;
+          const approvalId = newApprovalId();
+          const relay = getRelayUrl();
+          try {
+            await ntfy.send(
+              approvalMessage(
+                {
+                  permissionID,
+                  sessionID,
+                  title:
+                    patterns !== undefined && patterns.length > 0
+                      ? `${permission}: ${patterns.join(' ')}`
+                      : permission,
+                },
+                approvalId,
+                relay,
+                config.port,
+              ),
+            );
+          } catch (err) {
+            await logWarn(
+              client,
+              `failed to send approval notification: ${String(err)}`,
+            );
+            await respond(client, sessionID, permissionID, 'deny');
+            return;
+          }
+          void (async () => {
+            try {
+              const { decision, timedOut } = await awaitDecision(
+                requests,
+                approvalId,
+                timeoutMs,
+              );
+              if (timedOut) {
+                await ntfy.send({
+                  title: 'Approval timed out',
+                  body: 'Action denied.',
+                  priority: 3,
+                  tags: ['hourglass_flowing_sand'],
+                });
+              }
+              await respond(client, sessionID, permissionID, decision);
+            } catch (err) {
+              await logWarn(
+                client,
+                `failed to resolve approval: ${String(err)}`,
+              );
+              await respond(client, sessionID, permissionID, 'deny');
+            }
+          })();
+          return;
+        }
         if (event.type === 'session.idle') {
           await ntfy.send({
             title: 'Task complete',
@@ -121,11 +151,12 @@ export const plugin: Plugin = async ({ client }) => {
 
 async function respond(
   client: PluginInput['client'],
-  permission: Permission,
+  sessionID: string,
+  permissionID: string,
   decision: Decision,
 ): Promise<void> {
   await client.postSessionIdPermissionsPermissionId({
-    path: { id: permission.sessionID, permissionID: permission.id },
+    path: { id: sessionID, permissionID },
     body: { response: decision === 'allow' ? 'once' : 'reject' },
   });
 }

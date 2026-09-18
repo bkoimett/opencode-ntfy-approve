@@ -74,33 +74,48 @@ Acceptance:
 **Checkpoint 2 → wait for human "go".**
 
 ### Milestone 3 — interactive approval (the differentiator)
-**Goal:** `permission.ask` sends ntfy notification with Allow/Deny
-buttons that resolve the pending request.
+**Goal:** a permission request in OpenCode sends an ntfy notification with
+Allow/Deny buttons (or a curl fallback) that resolve the pending request.
 
-Issues:
+Issues (plan numbers; the spike was filed on GitHub as **#29**, see the note
+below):
 - `#13` — `spike: verify permission.ask fires in pinned OpenCode v1.18.31`
-- `#14` — `feat: subscribe to permission.ask`
+- `#14` — `feat: subscribe to permission.asked event`
 - `#15` — `feat: ntfy Actions header with Allow/Deny buttons`
 - `#16` — `feat: resolve pending request via postSessionIdPermissionsPermissionId`
-- `#17` — `feat: 30s timeout auto-denies and notifies`
+- `#17` — `feat: timeout auto-denies and notifies`
 - `#18` — `test: allow path, deny path, timeout path`
 
 Decision mapping: **Allow** → `response: 'once'`, **Deny** →
 `response: 'reject'`, timeout → `response: 'reject'`. There is no
 `client.permission.respond()` in the pinned SDK (v1.18.31). See AGENTS.md §3.
 
-`#13` is a spike before any implementation: trigger a permission prompt in
-pinned OpenCode v1.18.31 and confirm `permission.ask` actually fires (check
-the plugin log). If it does not fire, fall back to subscribing to the
-`permission.asked` SDK event and respond via
-`postSessionIdPermissionsPermissionId`. Document the outcome in the M3 PR.
+`#13` spike outcome (verified 2026-09-18 on v1.18.31): the flat
+`permission.ask` hook **does not fire** in run mode (opencode emits
+`asking id=...` and auto-rejects without dispatching the hook). The SDK
+**event** `permission.asked` **does fire** with runtime properties
+`{ id, sessionID, permission, patterns, metadata, always, tool }` (no
+`title`); `permission.replied` also fires. M3 therefore implements the
+event fallback: subscribe in the `event` hook, match `permission.asked`,
+respond via `postSessionIdPermissionsPermissionId`. Outcome documented in
+the M3 PR (plan `#13` was created on GitHub as issue **#29** because `#13`
+already exists historically — surface this mapping at Checkpoint 3).
+
+Deploy layout (learned during end-to-end verification): opencode
+auto-discovers every top-level `.js` under `.opencode/plugins/` as a plugin
+and invokes its exports with the plugin input. Loose helper modules must
+therefore live under `.opencode/plugins/lib/`; only the entry
+`opencode-ntfy-approve.js` may sit at the top level. The old single-file
+bundle layout also works (entry only). Do not put `config.js`, `ntfy.js`,
+etc. loose at the top level.
 
 Acceptance:
 - Trigger a permission prompt in OpenCode.
 - Phone receives notification with two buttons.
 - Tapping **Allow** → OpenCode proceeds.
 - Tapping **Deny** → OpenCode aborts cleanly.
-- Ignoring for 30s → OpenCode denies, phone gets a timeout notice.
+- Ignoring for the configured timeout (default 30s) → OpenCode denies,
+  phone gets a timeout notice.
 
 **Checkpoint 3 → wait for human "go".**
 
