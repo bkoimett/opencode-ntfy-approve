@@ -80,6 +80,9 @@ AGENTLINK_PORT=7342
 
 Do not commit `.env`. It is in `.gitignore`.
 
+The plugin reads `.env` automatically — no `export` needed. If you
+also export a variable in the shell, the export wins over the file.
+
 ### B4. Register the plugin with OpenCode
 Copy the built plugin into OpenCode's project plugin directory:
 
