@@ -2,6 +2,15 @@
 
 Approve or reject OpenCode tool permissions from your phone lock screen.
 
+## Documentation map
+
+- [GUIDE.md](GUIDE.md) — step-by-step setup for humans, no prior experience assumed
+- [PRD.md](PRD.md) — product requirements and MVP1 scope
+- [DESIGN.md](DESIGN.md) — architecture and design decisions
+- [WORKFLOW.md](WORKFLOW.md) — milestone plan and checkpoint protocol
+- [DEV.md](DEV.md) — forward-looking roadmap (Phases 2+)
+- [AGENTS.md](AGENTS.md) — rules for AI agents working in this repo
+
 Existing OpenCode+ntfy plugins only send one-way notifications. This one is interactive: when OpenCode asks for permission, you get an ntfy notification with **Allow** and **Reject** buttons. Tap one, and OpenCode continues or stops.
 
 ## How it works
@@ -39,7 +48,7 @@ Pick a random topic name, e.g. `opencode-approve-a8f3k2m9`. Subscribe to it in t
 ```bash
 mkdir -p ~/.config/opencode/plugins
 curl -o ~/.config/opencode/plugins/opencode-ntfy-approve.ts \
-  https://raw.githubusercontent.com/bkoimett/opencode-ntfy-approve/main/plugin.ts
+  https://raw.githubusercontent.com/<you>/opencode-ntfy-approve/main/plugin.ts
 ```
 
 **3. Configure**
@@ -47,20 +56,20 @@ curl -o ~/.config/opencode/plugins/opencode-ntfy-approve.ts \
 Set environment variables in your shell profile:
 
 ```bash
-export NTFY_TOPIC="opencode-approve-a8f3k2m9"
-export NTFY_CALLBACK_URL="https://your-tunnel.ngrok.io/callback"
-export NTFY_PORT="4097"
+export AGENTLINK_TOPIC="opencode-approve-a8f3k2m9"
+export AGENTLINK_RELAY_URL="https://your-tunnel.ngrok.io"
+export AGENTLINK_PORT="7342"
 ```
 
 **4. Start a tunnel**
 
 ```bash
-ngrok http 4097
+ngrok http 7342
 # or
-cloudflared tunnel --url http://localhost:4097
+cloudflared tunnel --url http://localhost:7342
 ```
 
-Copy the public URL into `NTFY_CALLBACK_URL`.
+Copy the public URL (no `/approve` suffix) into `AGENTLINK_RELAY_URL`.
 
 **5. Run OpenCode**
 
@@ -70,10 +79,11 @@ Trigger a tool that requires permission. You should get a notification with Allo
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `NTFY_TOPIC` | yes | — | ntfy topic name |
-| `NTFY_CALLBACK_URL` | yes | — | Public URL of your tunnel + `/callback` |
-| `NTFY_PORT` | no | `4097` | Local callback server port |
-| `NTFY_SERVER` | no | `https://ntfy.sh` | ntfy server (for self-hosting) |
+| `AGENTLINK_TOPIC` | yes | — | ntfy topic name |
+| `AGENTLINK_RELAY_URL` | yes | — | Public URL of your tunnel, no `/approve` suffix |
+| `AGENTLINK_APPROVAL_TIMEOUT` | no | `30` | Seconds before auto-deny |
+| `AGENTLINK_PORT` | no | `7342` | Local callback server port |
+| `AGENTLINK_NTFY_SERVER` | no | `https://ntfy.sh` | ntfy server (for self-hosting) |
 
 ## Security
 
