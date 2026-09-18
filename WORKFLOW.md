@@ -78,15 +78,22 @@ Acceptance:
 buttons that resolve the pending request.
 
 Issues:
-- `#13` — `feat: subscribe to permission.ask`
-- `#14` — `feat: ntfy Actions header with Allow/Deny buttons`
-- `#15` — `feat: resolve pending request via postSessionIdPermissionsPermissionId`
-- `#16` — `feat: 30s timeout auto-denies and notifies`
-- `#17` — `test: allow path, deny path, timeout path`
+- `#13` — `spike: verify permission.ask fires in pinned OpenCode v1.18.31`
+- `#14` — `feat: subscribe to permission.ask`
+- `#15` — `feat: ntfy Actions header with Allow/Deny buttons`
+- `#16` — `feat: resolve pending request via postSessionIdPermissionsPermissionId`
+- `#17` — `feat: 30s timeout auto-denies and notifies`
+- `#18` — `test: allow path, deny path, timeout path`
 
 Decision mapping: **Allow** → `response: 'once'`, **Deny** →
 `response: 'reject'`, timeout → `response: 'reject'`. There is no
 `client.permission.respond()` in the pinned SDK (v1.18.31). See AGENTS.md §3.
+
+`#13` is a spike before any implementation: trigger a permission prompt in
+pinned OpenCode v1.18.31 and confirm `permission.ask` actually fires (check
+the plugin log). If it does not fire, fall back to subscribing to the
+`permission.asked` SDK event and respond via
+`postSessionIdPermissionsPermissionId`. Document the outcome in the M3 PR.
 
 Acceptance:
 - Trigger a permission prompt in OpenCode.
@@ -102,9 +109,9 @@ Acceptance:
 includes a copy-pasteable curl command in the notification body.
 
 Issues:
-- `#18` — `feat: relay URL detection from env`
-- `#19` — `feat: fallback notification body with curl command`
-- `#20` — `test: relay set vs unset changes button target`
+- `#19` — `feat: relay URL detection from env`
+- `#20` — `feat: fallback notification body with curl command`
+- `#21` — `test: relay set vs unset changes button target`
 
 Acceptance:
 - With relay set: buttons point at relay URL.
@@ -117,10 +124,10 @@ Acceptance:
 **Goal:** README, GUIDE.md, and DEV.md accurate; demo reproducible.
 
 Issues:
-- `#21` — `docs: README quickstart`
-- `#22` — `docs: GUIDE.md end-to-end setup`
-- `#23` — `docs: DEV.md roadmap`
-- `#24` — `chore: tag v0.1.0`
+- `#22` — `docs: README quickstart`
+- `#23` — `docs: GUIDE.md end-to-end setup`
+- `#24` — `docs: DEV.md roadmap`
+- `#25` — `chore: tag v0.1.0`
 
 Acceptance:
 - A fresh clone + GUIDE.md steps produce a working demo in ≤ 3 hours.
@@ -143,9 +150,9 @@ main
  ├── feature/1-repo-bootstrap
  ├── feature/5-plugin-skeleton
  ├── feature/10-callback-server
- ├── feature/13-permission-ask
- ├── feature/18-relay-detection
- └── feature/21-readme
+ ├── feature/13-hook-spike
+ ├── feature/19-relay-detection
+ └── feature/22-readme
 ```
 
 Commands the AI will run per issue:

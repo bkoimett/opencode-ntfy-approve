@@ -30,6 +30,11 @@ the MVP1 architecture does not paint us into a corner.
   `response: 'once'`, **Allow always** → `response: 'always'`, **Deny** →
   `response: 'reject'`. MVP1 only exposes the `'once'` / `'reject'`
   buttons; `'always'` is reserved for this phase.
+- Question prompts (`AskUserQuestion`, tool id `question`): forward
+  multiple-choice questions to ntfy with one answer button per choice;
+  free-text questions stay in the TUI. Requires a `question` server API
+  and a `question.asked`-style event or hook — neither is typed in the
+  pinned SDK v1.18.31, so this needs a spike of its own.
 
 ### Phase 3 — Multi-agent adapters
 Introduce an internal `AgentAdapter` interface:
