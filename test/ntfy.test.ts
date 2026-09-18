@@ -72,6 +72,23 @@ test('omits Priority and Tags when not provided', async () => {
   assert.equal(headers.get('Tags'), null);
 });
 
+test('sends Actions header when provided', async () => {
+  const calls = installFetchHandler(() => Promise.resolve(new Response('ok')));
+  const client = new NtfyClient({ topic: 'topic' });
+  await client.send({
+    title: 'Permission needed',
+    body: 'write test.txt',
+    actions: [
+      'http, Allow, https://relay.example.com/approve?id=abc&decision=allow, clear=true',
+    ],
+  });
+  const headers = new Headers(calls[0].init?.headers);
+  assert.equal(
+    headers.get('Actions'),
+    'http, Allow, https://relay.example.com/approve?id=abc&decision=allow, clear=true',
+  );
+});
+
 test('throws on non-2xx response', async () => {
   installFetchHandler(() =>
     Promise.resolve(new Response('rate limited', { status: 429 })),

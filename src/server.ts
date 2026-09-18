@@ -24,6 +24,10 @@ export class PendingRequestMap {
     resolve(decision);
     return true;
   }
+
+  clear(id: string): void {
+    this.resolvers.delete(id);
+  }
 }
 
 export type CallbackServerOptions = {

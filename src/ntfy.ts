@@ -5,6 +5,7 @@ export type NtfyMessage = {
   body: string;
   priority?: NtfyPriority;
   tags?: string[];
+  actions?: string[];
 };
 
 export class NtfyClient {
@@ -23,6 +24,9 @@ export class NtfyClient {
     }
     if (message.tags !== undefined && message.tags.length > 0) {
       headers.set('Tags', message.tags.join(','));
+    }
+    if (message.actions !== undefined && message.actions.length > 0) {
+      headers.set('Actions', message.actions.join('; '));
     }
     const response = await fetch(`${this.server}/${this.topic}`, {
       method: 'POST',

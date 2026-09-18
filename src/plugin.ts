@@ -1,7 +1,13 @@
-import type { Plugin } from '@opencode-ai/plugin';
+import type { Plugin, PluginInput } from '@opencode-ai/plugin';
+import type { Permission } from '@opencode-ai/sdk';
+import {
+  approvalMessage,
+  awaitDecision,
+  newApprovalId,
+} from './approval.js';
 import { loadConfig } from './config.js';
 import { NtfyClient } from './ntfy.js';
-import { close, createCallbackServer, listen, PendingRequestMap } from './server.js';
+import { type Decision, close, createCallbackServer, listen, PendingRequestMap } from './server.js';
 
 const HOST = '127.0.0.1';
 
@@ -33,10 +39,53 @@ export const plugin: Plugin = async ({ client }) => {
       message: `listening on ${HOST}:${config.port}`,
     },
   });
+  const timeoutMs = config.approvalTimeout * 1000;
 
   return {
     dispose: async () => {
       await close(server);
+    },
+    'permission.ask': async (permission) => {
+      const id = newApprovalId();
+      const relay = process.env.AGENTLINK_RELAY_URL ?? null;
+      try {
+        await ntfy.send(
+          approvalMessage(
+            {
+              permissionID: permission.id,
+              sessionID: permission.sessionID,
+              title: permission.title,
+            },
+            id,
+            relay,
+          ),
+        );
+      } catch (err) {
+        await logWarn(client, `failed to send approval notification: ${String(err)}`);
+        await respond(client, permission, 'deny');
+        return;
+      }
+      void (async () => {
+        try {
+          const { decision, timedOut } = await awaitDecision(
+            requests,
+            id,
+            timeoutMs,
+          );
+          if (timedOut) {
+            await ntfy.send({
+              title: 'Approval timed out',
+              body: 'Action denied.',
+              priority: 3,
+              tags: ['hourglass_flowing_sand'],
+            });
+          }
+          await respond(client, permission, decision);
+        } catch (err) {
+          await logWarn(client, `failed to resolve approval: ${String(err)}`);
+          await respond(client, permission, 'deny');
+        }
+      })();
     },
     event: async ({ event }) => {
       try {
@@ -62,14 +111,29 @@ export const plugin: Plugin = async ({ client }) => {
           });
         }
       } catch (err) {
-        await client.app.log({
-          body: {
-            service: 'opencode-ntfy-approve',
-            level: 'warn',
-            message: `failed to send notification: ${String(err)}`,
-          },
-        });
+        await logWarn(client, `failed to send notification: ${String(err)}`);
       }
     },
   };
 };
+
+async function respond(
+  client: PluginInput['client'],
+  permission: Permission,
+  decision: Decision,
+): Promise<void> {
+  await client.postSessionIdPermissionsPermissionId({
+    path: { id: permission.sessionID, permissionID: permission.id },
+    body: { response: decision === 'allow' ? 'once' : 'reject' },
+  });
+}
+
+async function logWarn(client: PluginInput['client'], message: string) {
+  await client.app.log({
+    body: {
+      service: 'opencode-ntfy-approve',
+      level: 'warn',
+      message,
+    },
+  });
+}
