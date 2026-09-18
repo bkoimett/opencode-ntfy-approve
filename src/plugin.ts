@@ -7,6 +7,7 @@ import {
 } from './approval.js';
 import { loadConfig } from './config.js';
 import { NtfyClient } from './ntfy.js';
+import { getRelayUrl } from './relay.js';
 import { type Decision, close, createCallbackServer, listen, PendingRequestMap } from './server.js';
 
 const HOST = '127.0.0.1';
@@ -29,7 +30,7 @@ export const plugin: Plugin = async ({ client }) => {
   const server = createCallbackServer({
     port: config.port,
     requests,
-    getRelayUrl: () => process.env.AGENTLINK_RELAY_URL ?? null,
+    getRelayUrl,
   });
   await listen(server, HOST, config.port);
   await client.app.log({
@@ -47,7 +48,7 @@ export const plugin: Plugin = async ({ client }) => {
     },
     'permission.ask': async (permission) => {
       const id = newApprovalId();
-      const relay = process.env.AGENTLINK_RELAY_URL ?? null;
+      const relay = getRelayUrl();
       try {
         await ntfy.send(
           approvalMessage(
@@ -58,6 +59,7 @@ export const plugin: Plugin = async ({ client }) => {
             },
             id,
             relay,
+            config.port,
           ),
         );
       } catch (err) {

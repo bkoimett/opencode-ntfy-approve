@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { NtfyMessage } from './ntfy.js';
+import { LOCALHOST_BASE } from './relay.js';
 import { type Decision, type PendingRequestMap } from './server.js';
 
 export type ApprovalTarget = {
@@ -21,8 +22,9 @@ export function approvalMessage(
   target: ApprovalTarget,
   id: string,
   relay: string | null,
+  port = 7342,
 ): NtfyMessage {
-  const base = relay ?? 'http://127.0.0.1:7342';
+  const base = relay ?? LOCALHOST_BASE(port);
   const urlFor = (decision: Decision) =>
     `${base}/approve?id=${id}&decision=${decision}`;
 
