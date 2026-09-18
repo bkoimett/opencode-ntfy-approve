@@ -221,7 +221,7 @@ If both work, MVP1 is done.
 If interactive approval does not work within your time budget:
 
 1. Unset `AGENTLINK_RELAY_URL`.
-2. The plugin will still send notifications on `permission.asked`,
+2. The plugin will still send notifications on `permission.ask`,
    `session.idle`, and `session.error`.
 3. Approvals happen manually via Termux curl commands shown in the
    notification body, or you return to the laptop.

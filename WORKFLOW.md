@@ -45,10 +45,10 @@ Acceptance:
 `session.idle`. No buttons yet.
 
 Issues:
-- `#4` — `feat: plugin skeleton with flat hook contract`
-- `#5` — `feat: ntfy client posting to AGENTLINK_TOPIC`
-- `#6` — `feat: send notification on session.idle`
-- `#7` — `test: ntfy client unit tests`
+- `#5` — `feat: plugin skeleton with flat hook contract`
+- `#6` — `feat: ntfy client posting to AGENTLINK_TOPIC`
+- `#7` — `feat: send notification on session.idle`
+- `#8` — `test: ntfy client unit tests`
 
 Acceptance:
 - Restart OpenCode with plugin installed.
@@ -61,9 +61,9 @@ Acceptance:
 **Goal:** HTTP server on `127.0.0.1:7342` that resolves pending approvals.
 
 Issues:
-- `#8` — `feat: callback server with /approve and /health`
-- `#9` — `feat: pending-request map with UUID keys`
-- `#10` — `test: server rejects unknown id and invalid decision`
+- `#10` — `feat: callback server with /approve and /health`
+- `#11` — `feat: pending-request map with UUID keys`
+- `#12` — `test: server rejects unknown id and invalid decision`
 
 Acceptance:
 - `curl http://127.0.0.1:7342/health` returns `{ ok: true }`.
@@ -74,15 +74,19 @@ Acceptance:
 **Checkpoint 2 → wait for human "go".**
 
 ### Milestone 3 — interactive approval (the differentiator)
-**Goal:** `permission.asked` sends ntfy notification with Allow/Deny
+**Goal:** `permission.ask` sends ntfy notification with Allow/Deny
 buttons that resolve the pending request.
 
 Issues:
-- `#11` — `feat: subscribe to permission.asked`
-- `#12` — `feat: ntfy Actions header with Allow/Deny buttons`
-- `#13` — `feat: resolve pending request via client.permission.respond()`
-- `#14` — `feat: 30s timeout auto-denies and notifies`
-- `#15` — `test: allow path, deny path, timeout path`
+- `#13` — `feat: subscribe to permission.ask`
+- `#14` — `feat: ntfy Actions header with Allow/Deny buttons`
+- `#15` — `feat: resolve pending request via postSessionIdPermissionsPermissionId`
+- `#16` — `feat: 30s timeout auto-denies and notifies`
+- `#17` — `test: allow path, deny path, timeout path`
+
+Decision mapping: **Allow** → `response: 'once'`, **Deny** →
+`response: 'reject'`, timeout → `response: 'reject'`. There is no
+`client.permission.respond()` in the pinned SDK (v1.18.31). See AGENTS.md §3.
 
 Acceptance:
 - Trigger a permission prompt in OpenCode.
@@ -98,9 +102,9 @@ Acceptance:
 includes a copy-pasteable curl command in the notification body.
 
 Issues:
-- `#16` — `feat: relay URL detection from env`
-- `#17` — `feat: fallback notification body with curl command`
-- `#18` — `test: relay set vs unset changes button target`
+- `#18` — `feat: relay URL detection from env`
+- `#19` — `feat: fallback notification body with curl command`
+- `#20` — `test: relay set vs unset changes button target`
 
 Acceptance:
 - With relay set: buttons point at relay URL.
@@ -113,10 +117,10 @@ Acceptance:
 **Goal:** README, GUIDE.md, and DEV.md accurate; demo reproducible.
 
 Issues:
-- `#19` — `docs: README quickstart`
-- `#20` — `docs: GUIDE.md end-to-end setup`
-- `#21` — `docs: DEV.md roadmap`
-- `#22` — `chore: tag v0.1.0`
+- `#21` — `docs: README quickstart`
+- `#22` — `docs: GUIDE.md end-to-end setup`
+- `#23` — `docs: DEV.md roadmap`
+- `#24` — `chore: tag v0.1.0`
 
 Acceptance:
 - A fresh clone + GUIDE.md steps produce a working demo in ≤ 3 hours.
@@ -137,11 +141,11 @@ Acceptance:
 main
  │
  ├── feature/1-repo-bootstrap
- ├── feature/4-plugin-skeleton
- ├── feature/8-callback-server
- ├── feature/11-permission-asked
- ├── feature/16-relay-detection
- └── feature/19-readme
+ ├── feature/5-plugin-skeleton
+ ├── feature/10-callback-server
+ ├── feature/13-permission-ask
+ ├── feature/18-relay-detection
+ └── feature/21-readme
 ```
 
 Commands the AI will run per issue:

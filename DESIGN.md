@@ -38,9 +38,11 @@ text
 - Returns a **flat hook object** (not `{ hooks: {...} }`) — this is the
   OpenCode plugin contract. See AGENTS.md §Hook Contract.
 - Subscribes to:
-  - `permission.asked` → send interactive notification, await response.
-  - `session.idle` → send one-way "task complete" notification.
-  - `session.error` → send one-way "error" notification.
+  - Flat hook `permission.ask` → send interactive notification, await a
+    decision. (The SDK also emits the matching event `permission.updated`;
+    the docs call that event `permission.asked`.)
+  - Generic `event` hook → filter `session.idle` for "task complete" and
+    `session.error` for error one-way notifications.
 
 ### 2.2 Callback server (`src/server.ts`)
 - HTTP server bound to `127.0.0.1:7342` (no sudo required).
@@ -64,15 +66,21 @@ text
 
 ## 3. Approval flow (happy path — Option 2)
 
-1. OpenCode fires `permission.asked`.
+1. OpenCode fires a permission prompt (flat hook `permission.ask` / event
+   `permission.updated`).
 2. Plugin generates `id = randomUUID()`, stores a pending resolver.
 3. Plugin POSTs to ntfy with `Actions: http, Allow, <relay>/approve?id=...&decision=allow, clear=true; http, Deny, <relay>/approve?id=...&decision=deny, clear=true`.
 4. Phone receives notification with two buttons.
 5. Developer taps **Allow**.
 6. Phone POSTs to `<relay>/approve?id=...&decision=allow`.
 7. Termux SSH reverse tunnel forwards to laptop's `127.0.0.1:7342`.
-8. Plugin resolves the pending promise → calls `client.permission.respond({ decision: 'allow' })`.
+8. Plugin resolves the pending promise → calls
+   `postSessionIdPermissionsPermissionId({ path: { id, permissionID }, body: { response: 'once' } })`.
 9. OpenCode continues.
+
+Decision mapping: **Allow** → `response: 'once'`, **Deny** →
+`response: 'reject'`. MVP1 exposes only these two buttons;
+`response: 'always'` is reserved for Phase 2 (see DEV.md §1 Phase 2).
 
 ## 4. Approval flow (fallback — Option 3)
 
@@ -86,8 +94,9 @@ The developer experience is worse, but the plugin's code path is identical.
 ## 5. Timeout behavior
 
 - Default timeout: 30 seconds (`AGENTLINK_APPROVAL_TIMEOUT`).
-- On timeout: plugin calls `client.permission.respond({ decision: 'deny' })`.
-- Plugin sends a follow-up ntfy notification: *"⏱ Approval timed out — action denied."*
+- On timeout: plugin responds with `response: 'reject'` via
+  `postSessionIdPermissionsPermissionId(...)`, then sends a follow-up ntfy
+  notification: *"⏱ Approval timed out — action denied."*
 - This is fail-safe: no accidental approvals.
 
 ## 6. Security model
@@ -103,7 +112,8 @@ The developer experience is worse, but the plugin's code path is identical.
 - **ID validation.** Every callback must carry a `id` matching a pending
   request. Unknown IDs are rejected with HTTP 404.
 - **No command injection surface.** The plugin never executes strings from
-  ntfy. It only calls the typed `permission.respond()` API.
+  ntfy. It only calls the typed respond API
+  (`postSessionIdPermissionsPermissionId` with `response`).
 
 ## 7. UI / UX direction
 

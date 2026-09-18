@@ -24,8 +24,9 @@ a developer can approve agent actions from their phone.
   never by binding to `0.0.0.0`.
 - The plugin **must not** execute strings received from ntfy. Callback
   decisions are strictly `allow` or `deny`; anything else → HTTP 400.
-- The plugin **must** call `client.permission.respond()` — do not attempt
-  to fake approval by writing to OpenCode's internal state.
+- The plugin **must** respond via `postSessionIdPermissionsPermissionId`
+  with `{ response: 'once' | 'always' | 'reject' }` — do not attempt to
+  fake approval by writing to OpenCode's internal state.
 - No database. No SQLite. No persistent history in MVP1.
 - No new runtime dependencies beyond `node-fetch` (or native fetch) and
   `@opencode-ai/plugin`. Adding a dependency requires a note in the PR
@@ -47,8 +48,16 @@ export const plugin = async (input: PluginInput): Promise<Hooks> => {
 session.created and tui.prompt.append are not plugin-triggerable.
 Do not attempt to subscribe to them.
 
-permission.asked and permission.updated are the correct hooks for
-approval flows. If the OpenCode version in use exposes a different name,
+`permission.ask` is the flat hook for approval flows; the SDK also emits
+the matching event `permission.updated` (the docs call the event
+`permission.asked`). Both surface the same `Permission` object
+(`id`, `type`, `sessionID`, `title`, …).
+
+Respond to a permission with
+`postSessionIdPermissionsPermissionId({ path: { id, permissionID }, body: { response: 'once' | 'always' | 'reject' } })`.
+MVP1 decision mapping: **Allow → `'once'`, Deny → `'reject'`, timeout →
+`'reject'`**. There is **no** `client.permission.respond()` in the pinned
+SDK (v1.18.31). If a future OpenCode version exposes a different name,
 document the mismatch in a PR comment — do not silently work around it.
 
 If you are an AI agent and you are about to write hooks: { — stop. That

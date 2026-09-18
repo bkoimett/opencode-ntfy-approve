@@ -26,11 +26,13 @@ phone** for OpenCode.
 
 `opencode-ntfy-approve` is an OpenCode plugin that:
 
-1. Listens for OpenCode's `permission.asked` event.
+1. Listens for OpenCode's permission prompt (flat hook `permission.ask` /
+   event `permission.updated`).
 2. Sends an ntfy notification to the developer's phone containing
    **Allow** and **Deny** action buttons.
 3. When the developer taps a button, the decision is relayed back to the
-   laptop and passed into `client.permission.respond()`.
+   laptop and sent to OpenCode via `postSessionIdPermissionsPermissionId(...)`
+   — Allow → `'once'`, Deny → `'reject'`.
 4. OpenCode continues (or aborts) with no developer at the keyboard.
 
 ## 3. Target user
@@ -45,7 +47,7 @@ phone** for OpenCode.
 ### In scope
 - OpenCode plugin (TypeScript, project-local install).
 - ntfy.sh public topic (no self-hosting).
-- `permission.asked` → notification with **Allow / Deny** buttons.
+- `permission.ask` → notification with **Allow / Deny** buttons.
 - Two relay paths for the button callback:
   - **Primary:** Termux reverse SSH tunnel (phone relays to laptop).
   - **Fallback:** localhost-only server + manual Termux curl command.
@@ -69,6 +71,7 @@ MVP1 is done when:
 2. Triggering a permission prompt in OpenCode sends an ntfy notification
    to the phone within 2 seconds.
 3. Tapping **Allow** from the phone lock screen causes OpenCode to proceed.
+   (Maps to `postSessionIdPermissionsPermissionId(..., { response: 'once' })`.)
 4. Tapping **Deny** causes OpenCode to abort the action cleanly.
 5. Killing the SSH tunnel mid-session causes the next notification to
    automatically fall back to the localhost flow with no plugin restart.

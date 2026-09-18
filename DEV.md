@@ -26,6 +26,10 @@ the MVP1 architecture does not paint us into a corner.
   without Termux.
 - Result: notifications contain a stable `http://100.x.y.z:7342/approve`
   URL that works from any network.
+- Decision mapping grows to three tiers: **Allow once** →
+  `response: 'once'`, **Allow always** → `response: 'always'`, **Deny** →
+  `response: 'reject'`. MVP1 only exposes the `'once'` / `'reject'`
+  buttons; `'always'` is reserved for this phase.
 
 ### Phase 3 — Multi-agent adapters
 Introduce an internal `AgentAdapter` interface:
