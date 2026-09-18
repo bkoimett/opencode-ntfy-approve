@@ -40,6 +40,9 @@ Subscribe to a random topic, e.g. `opencode-approve-a8f3k2m9`.
     AGENTLINK_APPROVAL_TIMEOUT=30
     AGENTLINK_PORT=7342
 
+The plugin reads `.env` automatically (an exported shell variable wins
+over the file).
+
 **4. Set up the relay** so your phone can reach the laptop:
 
 - Primary path (recommended): Termux reverse SSH tunnel over Tailscale.
@@ -51,8 +54,9 @@ Subscribe to a random topic, e.g. `opencode-approve-a8f3k2m9`.
 
     opencode
 
-Trigger a tool that requires permission. You should receive an ntfy
-notification with **Allow** and **Deny** buttons.
+You should see `[opencode-ntfy-approve] listening on 127.0.0.1:7342` in
+the logs. Trigger a tool that requires permission. You should receive an
+ntfy notification with **Allow** and **Deny** buttons.
 
 Full walkthrough: GUIDE.md.
 
