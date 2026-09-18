@@ -85,7 +85,7 @@ Copy the built plugin into OpenCode's project plugin directory:
 
 ```bash
 mkdir -p .opencode/plugins
-cp dist/plugin.js .opencode/plugins/opencode-ntfy-approve.js
+cp dist/src/plugin.js .opencode/plugins/opencode-ntfy-approve.js
 ```
 
 ### B5. Restart OpenCode
@@ -193,7 +193,7 @@ If both work, MVP1 is done.
 ### Plugin does not load
 - Check OpenCode logs for `[opencode-ntfy-approve]`.
 - Confirm `.opencode/plugins/opencode-ntfy-approve.js` exists.
-- Confirm `dist/plugin.js` was built (`npm run build`).
+- Confirm `dist/src/plugin.js` was built (`npm run build`).
 
 ### Buttons do nothing
 - Confirm `AGENTLINK_RELAY_URL` is set and reachable from the phone:
