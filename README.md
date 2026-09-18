@@ -32,7 +32,7 @@ Subscribe to a random topic, e.g. `opencode-approve-a8f3k2m9`.
     npm install
     npm run build
     mkdir -p .opencode/plugins
-    cp dist/plugin.js .opencode/plugins/opencode-ntfy-approve.js
+    cp dist/src/plugin.js .opencode/plugins/opencode-ntfy-approve.js
 
 **3. Configure** — create `.env` in the repo root:
 
