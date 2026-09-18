@@ -2,114 +2,77 @@
 
 Approve or reject OpenCode tool permissions from your phone lock screen.
 
-Existing OpenCode+ntfy plugins only send one-way notifications. This one is interactive: when OpenCode asks for permission, you get an ntfy notification with **Allow** and **Reject** buttons. Tap one, and OpenCode continues or stops.
+## Documentation map
+
+- [GUIDE.md](GUIDE.md) — step-by-step setup for humans, no prior experience assumed
+- [PRD.md](PRD.md) — product requirements and MVP1 scope
+- [DESIGN.md](DESIGN.md) — architecture and design decisions
+- [WORKFLOW.md](WORKFLOW.md) — milestone plan and checkpoint protocol
+- [DEV.md](DEV.md) — forward-looking roadmap (Phases 2+)
+- [AGENTS.md](AGENTS.md) — rules for AI agents working in this repo
+
+Existing OpenCode + ntfy plugins only send one-way notifications. This one
+is interactive: when OpenCode asks for permission, you get an ntfy
+notification with **Allow** and **Deny** buttons. Tap one, and OpenCode
+continues or stops.
 
 ## How it works
 
-```
-OpenCode (permission.asked)
-    │
-    ▼
-[Plugin] ──► ntfy.sh ──► Phone notification
-    ▲                         │
-    │                         │ tap Allow/Reject
-    └───── local callback ◄───┘
-    │
-    ▼
-client.permission.respond()
-```
+See [DESIGN.md](DESIGN.md) for the full architecture.
 
-No inbound ports exposed. The callback server binds to localhost only.
+## Quickstart
 
-## Requirements
+**1. Install the ntfy app** on your Android phone (Play Store or F-Droid).
+Subscribe to a random topic, e.g. `opencode-approve-a8f3k2m9`.
 
-- OpenCode installed
-- Node 20+
-- ntfy app on Android or iOS
-- A local tunnel (ngrok, Cloudflare Tunnel, or Tailscale) if your phone isn't on the same network
+**2. Install the plugin** on your Ubuntu laptop:
 
-## Setup
+    git clone https://github.com/<you>/opencode-ntfy-approve.git
+    cd opencode-ntfy-approve
+    npm install
+    npm run build
+    mkdir -p .opencode/plugins
+    cp dist/plugin.js .opencode/plugins/opencode-ntfy-approve.js
 
-**1. Create an ntfy topic**
+**3. Configure** — create `.env` in the repo root:
 
-Pick a random topic name, e.g. `opencode-approve-a8f3k2m9`. Subscribe to it in the ntfy app.
+    AGENTLINK_TOPIC=opencode-approve-a8f3k2m9
+    AGENTLINK_APPROVAL_TIMEOUT=30
+    AGENTLINK_PORT=7342
 
-**2. Install the plugin**
+**4. Set up the relay** so your phone can reach the laptop:
 
-```bash
-mkdir -p ~/.config/opencode/plugins
-curl -o ~/.config/opencode/plugins/opencode-ntfy-approve.ts \
-  https://raw.githubusercontent.com/bkoimett/opencode-ntfy-approve/main/plugin.ts
-```
+- Primary path (recommended): Termux reverse SSH tunnel over Tailscale.
+  See GUIDE.md Part C.
+- Fallback path (zero setup): leave AGENTLINK_RELAY_URL unset. The
+  notification body will include a copy-pasteable Termux curl command.
 
-**3. Configure**
+**5. Run OpenCode:**
 
-Set environment variables in your shell profile:
+    opencode
 
-```bash
-export NTFY_TOPIC="opencode-approve-a8f3k2m9"
-export NTFY_CALLBACK_URL="https://your-tunnel.ngrok.io/callback"
-export NTFY_PORT="4097"
-```
+Trigger a tool that requires permission. You should receive an ntfy
+notification with **Allow** and **Deny** buttons.
 
-**4. Start a tunnel**
-
-```bash
-ngrok http 4097
-# or
-cloudflared tunnel --url http://localhost:4097
-```
-
-Copy the public URL into `NTFY_CALLBACK_URL`.
-
-**5. Run OpenCode**
-
-Trigger a tool that requires permission. You should get a notification with Allow/Reject buttons.
+Full walkthrough: GUIDE.md.
 
 ## Configuration
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `NTFY_TOPIC` | yes | — | ntfy topic name |
-| `NTFY_CALLBACK_URL` | yes | — | Public URL of your tunnel + `/callback` |
-| `NTFY_PORT` | no | `4097` | Local callback server port |
-| `NTFY_SERVER` | no | `https://ntfy.sh` | ntfy server (for self-hosting) |
+| AGENTLINK_TOPIC | yes | — | ntfy topic name |
+| AGENTLINK_RELAY_URL | no | unset | Relay URL the phone uses to reach the laptop (e.g. http://100.x.y.z:7342). If unset, fallback mode is used. |
+| AGENTLINK_APPROVAL_TIMEOUT | no | 30 | Seconds before a pending approval auto-denies |
+| AGENTLINK_PORT | no | 7342 | Local callback server port (bound to 127.0.0.1) |
+| AGENTLINK_NTFY_SERVER | no | https://ntfy.sh | ntfy server (override for self-hosting) |
 
 ## Security
 
-- Topic name acts as a shared secret. Use a long random suffix.
-- Callback server binds to `127.0.0.1` only.
-- Nonces are single-use and expire with the permission timeout.
-- No inbound ports on your machine — the tunnel handles routing.
-
-**Do not use a guessable topic name.** Anyone who knows your topic can send you fake notifications.
-
-## Known limitations
-
-- Single machine only (MVP1)
-- Binary approve/reject only (no free-text replies)
-- Requires a tunnel for remote phones
-- OpenCode only (not Claude Code, Codex, etc.)
-
-## Contributing
-
-Brief and direct:
-
-1. Open an issue before starting work. Describe the problem and your proposed fix.
-2. Wait for a maintainer to confirm the approach.
-3. Fork, branch from `main`, make one focused change.
-4. Run `npm test` if tests exist for the area you touched.
-5. Open a PR referencing the issue. Keep the diff minimal.
-6. Respond to review comments within 72 hours or the PR may be closed.
-
-**Do not:**
-- Submit PRs without an associated issue
-- Mix refactoring with feature changes
-- Add dependencies without justification
-- Reformat unrelated code
+- The callback server binds to 127.0.0.1 only. No public inbound ports.
+- The ntfy topic name acts as a shared secret. Use a long random suffix.
+- Decisions are strictly allow or deny. Unknown request IDs are rejected.
+- Timeout defaults to auto-deny — never auto-approve.
 
 ## License
 
-MIT
-
-
+MIT — see LICENSE.
