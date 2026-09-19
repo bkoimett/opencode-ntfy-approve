@@ -37,7 +37,7 @@ Subscribe to a random topic, e.g. `opencode-approve-a8f3k2m9`.
 **3. Configure** — create `.env` in the repo root:
 
     AGENTLINK_TOPIC=opencode-approve-a8f3k2m9
-    AGENTLINK_APPROVAL_TIMEOUT=30
+    AGENTLINK_APPROVAL_TIMEOUT=120
     AGENTLINK_PORT=7342
 
 The plugin reads `.env` automatically (an exported shell variable wins
@@ -66,7 +66,7 @@ Full walkthrough: GUIDE.md.
 |---|---|---|---|
 | AGENTLINK_TOPIC | yes | — | ntfy topic name |
 | AGENTLINK_RELAY_URL | no | unset | Relay URL the phone uses to reach the laptop (e.g. http://100.x.y.z:7342). If unset, fallback mode is used. |
-| AGENTLINK_APPROVAL_TIMEOUT | no | 30 | Seconds before a pending approval auto-denies |
+| AGENTLINK_APPROVAL_TIMEOUT | no | 120 | Seconds before a pending approval auto-denies |
 | AGENTLINK_PORT | no | 7342 | Local callback server port (bound to 127.0.0.1) |
 | AGENTLINK_NTFY_SERVER | no | https://ntfy.sh | ntfy server (override for self-hosting) |
 

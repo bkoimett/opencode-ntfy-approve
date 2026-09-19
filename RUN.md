@@ -99,7 +99,7 @@ Phone should buzz with a **Permission needed** notification and Allow/Deny butto
 | `curl health` fails on laptop | OpenCode isn't running or plugin didn't load — check Terminal 3 logs |
 | `curl health` fails in Termux | Tunnel dropped — re-run Terminal 2's SSH command |
 | Phone no notification | Check topic spelling, then `curl -d "test" ntfy.sh/<topic>` from laptop |
-| 404 on button tap | Known bug — the callback mapping needs fixing (see previous prompt) |
+| 404 on button tap | Tap took longer than `AGENTLINK_APPROVAL_TIMEOUT` (default 120s) — the approval auto-denied. Re-request or raise the timeout in `.env` and restart OpenCode. |
 
 ## Stop everything
 

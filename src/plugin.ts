@@ -2,6 +2,7 @@ import type { Plugin, PluginInput } from '@opencode-ai/plugin';
 import {
   approvalMessage,
   awaitDecision,
+  decisionToSdkResponse,
   newApprovalId,
 } from './approval.js';
 import { loadConfig } from './config.js';
@@ -157,7 +158,7 @@ async function respond(
 ): Promise<void> {
   await client.postSessionIdPermissionsPermissionId({
     path: { id: sessionID, permissionID },
-    body: { response: decision === 'allow' ? 'once' : 'reject' },
+    body: { response: decisionToSdkResponse(decision) },
   });
 }
 

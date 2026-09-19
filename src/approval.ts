@@ -14,6 +14,10 @@ export type DecisionResult = {
   timedOut: boolean;
 };
 
+export const decisionToSdkResponse = (
+  decision: Decision,
+): 'once' | 'reject' => (decision === 'allow' ? 'once' : 'reject');
+
 export function newApprovalId(): string {
   return randomUUID();
 }

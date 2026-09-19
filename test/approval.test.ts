@@ -3,9 +3,15 @@ import assert from 'node:assert/strict';
 import {
   approvalMessage,
   awaitDecision,
+  decisionToSdkResponse,
   newApprovalId,
 } from '../src/approval.js';
-import { PendingRequestMap } from '../src/server.js';
+import {
+  close,
+  createCallbackServer,
+  listen,
+  PendingRequestMap,
+} from '../src/server.js';
 
 const TARGET = {
   permissionID: 'perm-1',
@@ -68,4 +74,45 @@ test('awaitDecision is single-use after a decision', async () => {
   assert.equal(requests.resolve('abc', 'allow'), true);
   await pending;
   assert.equal(requests.resolve('abc', 'deny'), false);
+});
+
+test('callback decision allow maps to SDK response once', () => {
+  assert.equal(decisionToSdkResponse('allow'), 'once');
+});
+
+test('callback decision deny maps to SDK response reject', () => {
+  assert.equal(decisionToSdkResponse('deny'), 'reject');
+});
+
+test('callback with unknown decision returns 400 and does not consume the id', async () => {
+  const requests = new PendingRequestMap();
+  const pending = awaitDecision(requests, 'abc', 5000);
+  const server = createCallbackServer({ port: 0, requests });
+  const port = await listen(server, '127.0.0.1', 0);
+  try {
+    const res = await fetch(
+      `http://127.0.0.1:${port}/approve?id=abc&decision=maybe`,
+    );
+    assert.equal(res.status, 400);
+    assert.deepEqual(await res.json(), { error: 'invalid decision' });
+    assert.equal(requests.resolve('abc', 'deny'), true);
+    assert.deepEqual(await pending, { decision: 'deny', timedOut: false });
+  } finally {
+    await close(server);
+  }
+});
+
+test('callback with unknown id returns 404', async () => {
+  const requests = new PendingRequestMap();
+  const server = createCallbackServer({ port: 0, requests });
+  const port = await listen(server, '127.0.0.1', 0);
+  try {
+    const res = await fetch(
+      `http://127.0.0.1:${port}/approve?id=unknown&decision=deny`,
+    );
+    assert.equal(res.status, 404);
+    assert.deepEqual(await res.json(), { error: 'unknown id' });
+  } finally {
+    await close(server);
+  }
 });

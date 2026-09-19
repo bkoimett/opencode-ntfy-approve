@@ -74,7 +74,7 @@ Create a file `.env` in the repo root:
 
 ```
 AGENTLINK_TOPIC=opencode-approve-a8f3k2m9
-AGENTLINK_APPROVAL_TIMEOUT=30
+AGENTLINK_APPROVAL_TIMEOUT=120
 AGENTLINK_PORT=7342
 ```
 

@@ -10,7 +10,7 @@ export type Config = {
 const DEFAULTS = {
   server: 'https://ntfy.sh',
   port: 7342,
-  approvalTimeout: 30,
+  approvalTimeout: 120,
 } as const;
 
 const DOTENV_PATH = '.env';

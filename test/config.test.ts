@@ -42,7 +42,7 @@ test('loadConfig uses defaults when nothing is set', () => {
   assert.equal(config.topic, null);
   assert.equal(config.server, 'https://ntfy.sh');
   assert.equal(config.port, 7342);
-  assert.equal(config.approvalTimeout, 30);
+  assert.equal(config.approvalTimeout, 120);
 });
 
 test('loadConfig ignores non-positive numbers', () => {
