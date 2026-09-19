@@ -52,7 +52,7 @@ phone** for OpenCode.
   - **Primary:** Termux reverse SSH tunnel (phone relays to laptop).
   - **Fallback:** localhost-only server + manual Termux curl command.
 - Auto-detection of relay URL via `AGENTLINK_RELAY_URL` env var.
-- 30-second approval timeout → auto-deny + fallback notification.
+- 120-second approval timeout → auto-deny + fallback notification.
 - One-way notifications for `session.idle` and `session.error` (bonus, low cost).
 
 ### Out of scope (MVP1)

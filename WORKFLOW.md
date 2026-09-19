@@ -114,7 +114,7 @@ Acceptance:
 - Phone receives notification with two buttons.
 - Tapping **Allow** → OpenCode proceeds.
 - Tapping **Deny** → OpenCode aborts cleanly.
-- Ignoring for the configured timeout (default 30s) → OpenCode denies,
+- Ignoring for the configured timeout (default 120s) → OpenCode denies,
   phone gets a timeout notice.
 
 **Checkpoint 3 → wait for human "go".**

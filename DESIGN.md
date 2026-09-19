@@ -93,7 +93,7 @@ The developer experience is worse, but the plugin's code path is identical.
 
 ## 5. Timeout behavior
 
-- Default timeout: 30 seconds (`AGENTLINK_APPROVAL_TIMEOUT`).
+- Default timeout: 120 seconds (`AGENTLINK_APPROVAL_TIMEOUT`).
 - On timeout: plugin responds with `response: 'reject'` via
   `postSessionIdPermissionsPermissionId(...)`, then sends a follow-up ntfy
   notification: *"⏱ Approval timed out — action denied."*
@@ -141,7 +141,7 @@ Environment variables (all optional except `AGENTLINK_TOPIC`):
 |---|---|---|
 | `AGENTLINK_TOPIC` | — | ntfy topic name (required) |
 | `AGENTLINK_RELAY_URL` | unset | Public relay URL for action buttons |
-| `AGENTLINK_APPROVAL_TIMEOUT` | `30` | Seconds before auto-deny |
+| `AGENTLINK_APPROVAL_TIMEOUT` | `120` | Seconds before auto-deny |
 | `AGENTLINK_PORT` | `7342` | Local callback server port |
 | `AGENTLINK_NTFY_SERVER` | `https://ntfy.sh` | Override for self-hosted |
 

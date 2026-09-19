@@ -24,6 +24,8 @@ the MVP1 architecture does not paint us into a corner.
 - Embed a Tailscale userspace node (`tsnet`) inside the plugin so the
   laptop joins the tailnet without sudo, without a system daemon, and
   without Termux.
+- Late-tap UX: hitting a stale Allow/Deny button after the timeout should
+  return a friendly `⏱ Already timed out` page instead of a raw HTTP 404.
 - Result: notifications contain a stable `http://100.x.y.z:7342/approve`
   URL that works from any network.
 - Decision mapping grows to three tiers: **Allow once** →
